@@ -47,3 +47,41 @@ Použite vlastný testovací účet. Príklad:
 | **Cargo detail section** | `Value`, `Max Length`, and `Unit Weight` should not accept negative numbers. | Negative values are allowed and not blocked. |
 | **Street & Number / ZIP in route waypoints** | Changes should reflect in the left-side route waypoints section. | Values do not update in specific cases in the left-side section. |
 
+
+
+
+## Clean up any entities you create or use unique identifiers to avoid collisions.
+- na toto by som pouzil @faker kniznicu aby boli data unikatne a priamo aj asserty na to...
+
+<!-- 
+import { test, expect } from '@playwright/test';
+import { faker } from '@faker-js/faker';
+
+test('fill form with faker data', async ({ page }) => {
+  // Generovanie náhodných údajov
+  const randomName = faker.name.fullName();
+  const randomEmail = faker.internet.email();
+  const randomAddress = faker.address.streetAddress();
+
+  // Otvorenie stránky
+  await page.goto('https://example.com/form');
+
+  // Vyplnenie polí
+  await page.fill('#name', randomName);
+  await page.fill('#email', randomEmail);
+  await page.fill('#address', randomAddress);
+
+  // Klik na submit
+  await page.click('#submit');
+
+  // Asserty: overenie, že hodnoty boli správne odoslané alebo zobrazené
+  const submittedName = await page.locator('#submitted-name').textContent();
+  const submittedEmail = await page.locator('#submitted-email').textContent();
+  const submittedAddress = await page.locator('#submitted-address').textContent();
+
+  expect(submittedName).toBe(randomName);
+  expect(submittedEmail).toBe(randomEmail);
+  expect(submittedAddress).toBe(randomAddress);
+}); 
+-->
+
