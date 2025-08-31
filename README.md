@@ -22,8 +22,7 @@
 ## Credentials
 Použite vlastný testovací účet. Príklad:
 - Email: kopecky.vlado@gmail.com
-- Heslo: 159357aA
-
+- Heslo: xxxxx
 ## Testy pokrývajú:
 - Happy path: Vytvorenie Transport Request
 - Negatívny scenár: Validácia povinných polí
