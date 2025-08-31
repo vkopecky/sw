@@ -1,4 +1,16 @@
 export const request_selectors = {
+    //new req
+    new_request_button: '.btn-group',
+    sidebar1: '#form-preview-sidebar',
+    topsidebarbtns: '#form-waypoints',
+    waypoints_info: '#waypoints-info',
+    cargo_info: '#cargo-info',
+
+    header_cargo:'#tab-request-cargo',
+    header_settings:'#tab-request-settings',
+    header_documents:'#tab-request-documents',
+    header_bids:'#request-bids',
+
     // Waypoint Selectors
     input_waypoint1_earliest_pickup: '[data-test-id="dp-input"]',
     input_waypoint1_latest_pickup: '[data-test-id="dp-input"]',
@@ -45,11 +57,11 @@ export const request_selectors = {
     input_cargo_cost_center: '#costCenter',
     input_cargo_description: '[name="cargo.description"]',
     select_cargo_requirements: '[aria-label="Special requirements"]',
-    select_cargo_type: '[aria-label="Cargo type"]',
+    select_cargo_type: '[id="cargo.type"]',
     option_cargo_type_other: 'li[role="option"]:has-text("Other")',
     input_cargo_value: '[aria-label="Value"]',
-    input_cargo_length: 'input[aria-label="Max. length"]',
-    input_cargo_weight: 'input[aria-label="Overall weight"]',
+    input_cargo_length: '[id="cargo.maxLength"]',
+    input_cargo_weight: '[id="cargo.weight"]',
     chk_cargo_note: 'input[type="checkbox"]:has-text("Add note for carrier")',
     input_cargo_note: 'textarea[aria-label="Note for carrier"]',
 

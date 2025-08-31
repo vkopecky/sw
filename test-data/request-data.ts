@@ -24,21 +24,54 @@ export const requestData = {
         note: 'Leave at the reception if not available.'
     },
     cargo: {
-        description: 'Electronic equipment and office supplies for branch office setup',
-        requirements1: 'Handling from side',
-        requirements2: 'Clamping straps',
+        description: 'Electronics and computer parts - fragile equipment',
         type: 'Other',
-        weight: '500',
-        value: '10000',
-        length: '2',
-        note: 'Priority delivery required'
+        requestType: 'Full Truck Load',
+        weight: '2500',
+        value: '50000',
+        length: '500',
+        note: 'Please handle cargo with extreme care. All items are fragile electronic equipment.'
     },
     request: {
-        transportType: 'SPOT',
+        transportType: 'Spot transport',
         carrier: 'Demo carrier',
         responsible: 'Vlado Kopecky',
-        duration: '30 min',
-        reference: 'CARGO-REF-1724865423',
-        costCenter: 'CC-1001'
+        duration: '30 min'
+    },
+    dates: {
+        pickup: {
+            earliest: () => {
+                const date = new Date();
+                // Add 10 minutes to current time and round to nearest 5 minutes
+                date.setMinutes(date.getMinutes() + 10);
+                date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5);
+                return date;
+            },
+            latest: () => {
+                const date = new Date();
+                // Add 70 minutes to current time (1 hour + 10 minutes) and round to nearest 5 minutes
+                date.setMinutes(date.getMinutes() + 70);
+                date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5);
+                return date;
+            }
+        },
+        delivery: {
+            earliest: () => {
+                const date = new Date();
+                date.setDate(date.getDate() + 1);
+                // Add 10 minutes to current time and round to nearest 5 minutes
+                date.setMinutes(date.getMinutes() + 10);
+                date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5);
+                return date;
+            },
+            latest: () => {
+                const date = new Date();
+                date.setDate(date.getDate() + 1);
+                // Add 70 minutes to current time (1 hour + 10 minutes) and round to nearest 5 minutes
+                date.setMinutes(date.getMinutes() + 70);
+                date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5);
+                return date;
+            }
+        }
     }
 };

@@ -5,3 +5,4 @@ test-results/
 .env
 loginState.json
 *.log
+examples/

@@ -1,33 +1,39 @@
 import { test, expect } from '@playwright/test';
 import { request_selectors } from '../selectors/request-selectors';
 import { requestData } from '../test-data/request-data';
+import { pickDateTime } from '../helpers/date-picker-helper';
 
 test.use({ storageState: 'loginState.json' });
 
-// Funkcia na formátovanie dátumu do "dd.MM.yyyy HH:mm"
 function formatDate(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 test('create new transport request - happy path', async ({ page }) => {
-//    await page.goto('https://stage.4shipper.transportly.eu/request/list');
     const baseURL = process.env.BASEURL || 'https://stage.4shipper.transportly.eu';
     await page.goto(`${baseURL}/request/list`);
-    await page.locator('.btn-group').click();
     
-    // Dynamické časy pre waypoint 1
-    const now = new Date();
-    const earliestPickup = new Date(now.getTime() + 10 * 60 * 1000); // teraz + 10 min
-    const latestPickup = new Date(now.getTime() + 70 * 60 * 1000);    // teraz + 70 min
+    // Click create new request button
+    await page.locator(request_selectors.new_request_button).click();
+    
+    // Assert we're on the create request page
+    await expect(page).toHaveURL(/.*\/request\/create/);
 
-    // Fill Waypoint 1 - Pickup
+    // Verify initial waypoints form state
+     await expect(page.getByRole('radio', { name: 'One way' })).toBeChecked();
+     await expect(page.locator(request_selectors.sidebar1)).toContainText('Start with the waypoints');
+     await expect(page.locator(request_selectors.sidebar1)).toContainText('Fill in details about route');
+     await expect(page.getByRole('button', { name: 'Road' })).toBeVisible();
+     await expect(page.locator(request_selectors.topsidebarbtns)).toContainText('Road');
+     await expect(page.locator(request_selectors.topsidebarbtns)).toContainText('Air');
+     await expect(page.locator(request_selectors.topsidebarbtns)).toContainText('Sea');
+     await expect(page.locator(request_selectors.topsidebarbtns)).toContainText('Rail');
+     await expect(page.locator(request_selectors.topsidebarbtns)).toContainText('Intermodal');
 
-    //await page.locator(request_selectors.input_waypoint1_earliest_pickup).nth(0).fill(formatDate(earliestPickup));
-
-    await page.locator(request_selectors.input_waypoint1_earliest_pickup).nth(0).evaluate((el, value) => (el as HTMLInputElement).value = value,formatDate(earliestPickup));
-    await page.locator(request_selectors.input_waypoint1_latest_pickup).nth(1).evaluate((el, value) => (el as HTMLInputElement).value = value,formatDate(latestPickup));
-
+    // Fill Waypoint 1 - Pickup using calendar clicks
+    await pickDateTime(page, 0, requestData.dates.pickup.earliest());
+    await pickDateTime(page, 1, requestData.dates.pickup.latest());
 
     await page.locator(request_selectors.input_waypoint1_name_company).fill(requestData.waypoint1.name);
     await page.locator(request_selectors.input_waypoint1_street).fill(requestData.waypoint1.street);
@@ -43,14 +49,24 @@ test('create new transport request - happy path', async ({ page }) => {
     await page.locator(request_selectors.chk_waypoint1_note).click();
     await page.locator(request_selectors.input_waypoint1_note).fill(requestData.waypoint1.note);
 
-    // Dynamické časy pre waypoint 2 (napr. +1 deň od teraz)
-    const earliestDelivery = new Date(now.getTime() + 24 * 60 * 60 * 1000 + 10 * 60 * 1000); // zajtra + 10 min
-    const latestDelivery = new Date(now.getTime() + 24 * 60 * 60 * 1000 + 70 * 60 * 1000);   // zajtra + 70 min
+    // Verify waypoint 1 inputs
+    await expect(page.locator(request_selectors.input_waypoint1_name_company)).toHaveValue(requestData.waypoint1.name);
+    await expect(page.locator(request_selectors.input_waypoint1_city)).toHaveValue(requestData.waypoint1.city);
+    await expect(page.locator(request_selectors.input_waypoint1_zip)).toHaveValue(requestData.waypoint1.zip);
+    
+    // Additional assertions commented out for review
+     await expect(page.locator(request_selectors.input_waypoint1_street)).toHaveValue(requestData.waypoint1.street);
+     await expect(page.locator(request_selectors.input_waypoint1_contact_name)).toHaveValue(requestData.waypoint1.contact);
+     await expect(page.locator(request_selectors.input_waypoint1_email)).toHaveValue(requestData.waypoint1.email);
+     await expect(page.locator(request_selectors.input_waypoint1_phone)).toHaveValue(requestData.waypoint1.phone);
+     await expect(page.locator(request_selectors.input_waypoint1_reference)).toHaveValue(requestData.waypoint1.reference);
+     await expect(page.locator(request_selectors.input_waypoint1_note)).toHaveValue(requestData.waypoint1.note);
+     await expect(page.locator(request_selectors.chk_waypoint1_save_address)).toBeChecked();
+     await expect(page.locator(request_selectors.chk_waypoint1_note)).toBeChecked();
 
-    // Fill Waypoint 2 - Delivery
-//    await page.locator(request_selectors.radio_waypoint2_delivery).check();
-    await page.locator(request_selectors.input_waypoint2_earliest_delivery).nth(2).evaluate((el, value) => (el as HTMLInputElement).value = value,formatDate(earliestDelivery));
-    await page.locator(request_selectors.input_waypoint2_latest_delivery).nth(3).evaluate((el, value) => (el as HTMLInputElement).value = value,formatDate(latestDelivery));
+    // Fill Waypoint 2 - Delivery using calendar clicks
+    await pickDateTime(page, 2, requestData.dates.delivery.earliest());
+    await pickDateTime(page, 3, requestData.dates.delivery.latest());
 
     await page.locator(request_selectors.input_waypoint2_name_company).fill(requestData.waypoint2.name);
     await page.locator(request_selectors.input_waypoint2_street).fill(requestData.waypoint2.street);
@@ -66,41 +82,122 @@ test('create new transport request - happy path', async ({ page }) => {
     await page.locator(request_selectors.chk_waypoint2_note).check();
     await page.locator(request_selectors.input_waypoint2_note).fill(requestData.waypoint2.note);
 
+    // Verify waypoint 2 inputs
+    await expect(page.locator(request_selectors.input_waypoint2_name_company)).toHaveValue(requestData.waypoint2.name);
+    await expect(page.locator(request_selectors.input_waypoint2_city)).toHaveValue(requestData.waypoint2.city);
+    await expect(page.locator(request_selectors.input_waypoint2_zip)).toHaveValue(requestData.waypoint2.zip);
+
+    // Additional assertions commented out for review
+    await expect(page.locator(request_selectors.input_waypoint2_street)).toHaveValue(requestData.waypoint2.street);
+    await expect(page.locator(request_selectors.input_waypoint2_contact_name)).toHaveValue(requestData.waypoint2.contact);
+    await expect(page.locator(request_selectors.input_waypoint2_email)).toHaveValue(requestData.waypoint2.email);
+    await expect(page.locator(request_selectors.input_waypoint2_phone)).toHaveValue(requestData.waypoint2.phone);
+    await expect(page.locator(request_selectors.input_waypoint2_reference)).toHaveValue(requestData.waypoint2.reference);
+    await expect(page.locator(request_selectors.input_waypoint2_note)).toHaveValue(requestData.waypoint2.note);
+    await expect(page.locator(request_selectors.chk_waypoint2_save_address)).toBeChecked();
+    await expect(page.locator(request_selectors.chk_waypoint2_note)).toBeChecked();
+
+    // !Confirm past date warning dialog
     await page.locator(request_selectors.btn_continue).click();
+    // await expect(page.getByText('Some waypoints are scheduled for a date and time in the past.')).toBeVisible();
+    // await page.getByRole('button', { name: 'Continue', exact: true }).click();
+
+    // Verify we're on the cargo info page
+    await expect(page.getByRole('heading', { name: 'Cargo details' })).toBeVisible();
 
     // Fill Cargo Information
-
-    await page.locator("#reference").fill(requestData.request.reference);
-    await page.locator("#costCenter").fill(requestData.request.costCenter);
-
-    // await page.locator("#cargo.description").click();
-    // await page.getByText('Handling from top').click();
-
+    // Additional assertions commented out for review
+    // await expect(page.getByRole('heading', { name: 'Describe your cargo and select special requirements' })).toBeVisible();
+    // await expect(page.getByText('You can describe your cargo units details.')).toBeVisible();
     await page.getByRole('textbox', { name: 'Cargo description' }).fill(requestData.cargo.description);
-
-    await page.getByRole('combobox', { name: 'Special requirements' }).click();
-    await page.getByText('Handling from top').click();
-    await page.getByRole('combobox', { name: 'Handling from top' }).press('Escape');
-
-    await page.locator('[id="cargo.type"]').click();
-    await page.getByRole('option', { name: 'Other' }).click();
+    await page.locator(request_selectors.select_cargo_type).click();
+    await page.getByRole('option', { name: requestData.cargo.type }).click();
+    
+    // Request type
     await page.getByRole('combobox', { name: 'Not specified' }).click();
-    await page.getByRole('option', { name: 'Parcel' }).click();
+    await page.getByRole('option', { name: requestData.cargo.requestType }).click();
 
-
+    // Value and dimensions
     await page.getByRole('spinbutton', { name: 'Value' }).fill(requestData.cargo.value);
+    await page.locator(request_selectors.input_cargo_length).fill(requestData.cargo.length);
+    await page.locator(request_selectors.input_cargo_weight).fill(requestData.cargo.weight);
 
-    await page.locator('[id="cargo.maxLength"]').fill(requestData.cargo.weight);
-    await page.locator('[id="cargo.weight"]').fill(requestData.cargo.length);
-
-
+    // Add note for carrier
     await page.getByRole('checkbox', { name: 'Add note for carrier' }).check();
     await page.getByRole('textbox', { name: 'Note for carrier' }).fill(requestData.cargo.note);
 
+    // Verify cargo info before proceeding
+    await expect(page.getByRole('textbox', { name: 'Cargo description' })).toHaveValue(requestData.cargo.description);
+    await expect(page.getByRole('spinbutton', { name: 'Value' })).toHaveValue(requestData.cargo.value);
+    await expect(page.locator(request_selectors.input_cargo_length)).toHaveValue(requestData.cargo.length);
+    await expect(page.locator(request_selectors.input_cargo_weight)).toHaveValue(requestData.cargo.weight);
+
+    await page.locator(request_selectors.btn_continue).click();
+
+    // Verify we're on the carriers page
+    await expect(page.getByRole('heading', { name: 'Carriers and options' })).toBeVisible();
+
+    // Select transport type
+    await page.getByLabel(requestData.request.transportType).check();
+
+    // Select carrier
+    await page.getByText(requestData.request.carrier).click();
+    
+    // Verify duration is set to 30 minutes
+    await expect(page.getByLabel('30 min')).toBeChecked();
+    
+    // Submit and go to review
+    await page.locator(request_selectors.btn_continue).click();
+
+    // Verify we're on the review page
+    await expect(page.getByRole('heading', { name: 'Check and confirm your request' })).toBeVisible();
+
+    // Final review assertions
+
+
+    await expect(page.locator(request_selectors.sidebar1)).toContainText('Check and confirm your request');
+    await expect(page.locator(request_selectors.sidebar1)).toContainText('After confirmation, this request will be sent to selected carriers');
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText('Road');
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.name);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.street);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.zip);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.reference);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.contact);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.note);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.name);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.street);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.zip);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.reference);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.contact);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.note);
+    await expect(page.locator(request_selectors.cargo_info)).toContainText(requestData.cargo.description);
+    // await expect(page.locator(request_selectors.cargo_info)).toContainText(requestData.cargo.value);//this one need regex since is 50 000 € ...
+    await expect(page.locator(request_selectors.cargo_info)).toContainText(requestData.cargo.length);
+    await expect(page.locator(request_selectors.cargo_info)).toContainText(requestData.cargo.weight);
+    await expect(page.locator(request_selectors.cargo_info)).toContainText(requestData.cargo.note);
 
 
 
+    // Send the request
+    await page.getByRole('button', { name: ' Send request' }).click();
 
-    await page.pause()
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.name);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.street);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.zip);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.reference);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.contact);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint1.note);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.name);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.street);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.zip);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.reference);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.contact);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.note);
+    await expect(page.locator(request_selectors.waypoints_info)).toContainText(requestData.waypoint2.note);
+
+    await expect(page.locator(request_selectors.header_cargo)).toContainText('Cargo info');
+    await expect(page.locator(request_selectors.header_settings)).toContainText('Request settings');
+    await expect(page.locator(request_selectors.header_documents)).toContainText('Documents');
+    await expect(page.locator(request_selectors.header_bids)).toContainText('Carriers bids');
 
 });
